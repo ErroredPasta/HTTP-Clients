@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Exchange Rate</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="select_a_target_currency">Select a target currency</string>
+    <string name="select_a_base_currency">Select a base currency</string>
+    <string name="loading">Loading…</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="malformed_request">Malformed Request Sent</string>
+    <string name="unsupported_code">Unsupported Code Detected</string>
+</resources>

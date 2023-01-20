@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.example.exchangerate.presentation.MainViewModel" />
+
+        <import type="android.text.InputType" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        tools:context=".presentation.MainActivity">
+
+        <TextView
+            android:id="@+id/fromTitleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/from"
+            android:textSize="16sp"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/baseCurrencyText"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.inputState.baseCurrency.toString()}"
+            app:layout_constraintBottom_toBottomOf="@id/baseCurrencyAmountTextInput"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/baseCurrencyAmountTextInput"
+            tools:text="KRW" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/baseCurrencyAmountTextInput"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@{viewModel.inputState.baseCurrency.currencyName}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/baseCurrencyText"
+            app:layout_constraintTop_toBottomOf="@id/fromTitleText">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onTextChanged="@{(text, start, before, count) -> viewModel.onBaseCurrencyAmountChange(text.toString())}"
+                android:text="@{String.format(`%f`, viewModel.inputState.baseCurrencyAmount)}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/toTitleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:text="@string/to"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/baseCurrencyAmountTextInput" />
+
+        <TextView
+            android:id="@+id/targetCurrencyText"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.inputState.targetCurrency.toString()}"
+            app:layout_constraintBottom_toBottomOf="@id/targetCurrencyAmountTextInput"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/targetCurrencyAmountTextInput"
+            tools:text="USD" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/targetCurrencyAmountTextInput"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@{viewModel.inputState.targetCurrency.currencyName}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/targetCurrencyText"
+            app:layout_constraintTop_toBottomOf="@id/toTitleText">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="@{InputType.TYPE_NULL}" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
