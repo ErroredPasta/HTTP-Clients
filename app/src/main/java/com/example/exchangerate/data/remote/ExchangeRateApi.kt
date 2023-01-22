@@ -6,11 +6,11 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 
 interface ExchangeRateApi {
-    @GET("/v6/${API_KEY}/pair/{from}/{to}/{amount}")
+
     suspend fun convertCurrency(
-        @Path("from") from: String,
-        @Path("to") to: String,
-        @Path("amount") amount: String = "1.0"
+        from: String,
+        to: String,
+        amount: String = "1.0"
     ): ConversionResultDto
 
     companion object {
