@@ -52,13 +52,11 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
 
-    // region Retrofit2 ============================================================================
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation "com.squareup.okhttp3:okhttp:4.9.3"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.9.3"
-    testImplementation "com.squareup.okhttp3:mockwebserver:4.9.3"
-    // endregion Retrofit2 =========================================================================
+    // region Ktor Client ============================================================================
+    implementation 'io.ktor:ktor-client-android:1.5.0'
+    implementation 'io.ktor:ktor-client-serialization:1.5.0'
+    implementation 'io.ktor:ktor-client-logging-jvm:1.5.0'
+    // endregion Ktor Client =========================================================================
 
     // region Dagger2 ==============================================================================
     implementation 'com.google.dagger:dagger:2.43.2'
