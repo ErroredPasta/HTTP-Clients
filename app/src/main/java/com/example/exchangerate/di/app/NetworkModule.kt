@@ -1,30 +1,60 @@
 package com.example.exchangerate.di.app
 
-import com.example.exchangerate.data.remote.ExchangeRateApi
-import com.example.exchangerate.data.remote.ExchangeRateApiImpl
+import android.util.Log
 import com.google.gson.Gson
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.android.*
+import io.ktor.client.features.*
+import io.ktor.client.features.json.*
+import io.ktor.client.features.logging.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.utils.io.core.*
 import javax.inject.Singleton
 
 @Module
-interface NetworkModule {
+object NetworkModule {
 
-    @Binds
-    fun bindExchangeApi(impl: ExchangeRateApiImpl): ExchangeRateApi
+    @Provides
+    @Singleton
+    fun provideKtorClient(
+        jsonSerializer: JsonSerializer
+    ): HttpClient = HttpClient(Android) {
+        install(Logging) {
+            logger = object : Logger {
+                override fun log(message: String) {
+                    Log.d("Ktor", "log: $message")
+                }
+            }
 
-    companion object {
-        @Provides
-        @Singleton
-        fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }).build()
+            level = LogLevel.ALL
+        }
 
-        @Provides
-        fun provideGson(): Gson = Gson()
+        install(JsonFeature) {
+            serializer = jsonSerializer
+        }
+
+        install(DefaultRequest) {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideJsonSerializer(): JsonSerializer = object : JsonSerializer {
+
+        private val gson = Gson()
+
+        override fun read(type: TypeInfo, body: Input): Any {
+            return gson.fromJson(body.readText(), type.type.java)
+        }
+
+        override fun write(data: Any, contentType: ContentType): OutgoingContent {
+            return TextContent(gson.toJson(data), contentType)
+        }
     }
 }
