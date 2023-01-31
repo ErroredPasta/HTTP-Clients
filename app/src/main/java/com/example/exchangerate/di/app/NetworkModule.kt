@@ -1,7 +1,11 @@
 package com.example.exchangerate.di.app
 
 import android.util.Log
+import com.example.exchangerate.data.remote.ExchangeRateApi
+import com.example.exchangerate.data.remote.ExchangeRateApiImpl
+import com.example.exchangerate.domain.exception.ConversionException
 import com.google.gson.Gson
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import io.ktor.client.*
@@ -17,44 +21,61 @@ import io.ktor.utils.io.core.*
 import javax.inject.Singleton
 
 @Module
-object NetworkModule {
+interface NetworkModule {
 
-    @Provides
-    @Singleton
-    fun provideKtorClient(
-        jsonSerializer: JsonSerializer
-    ): HttpClient = HttpClient(Android) {
-        install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    Log.d("Ktor", "log: $message")
+    @Binds
+    fun bindExchangeRateApi(impl: ExchangeRateApiImpl): ExchangeRateApi
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideKtorClient(
+            jsonSerializer: JsonSerializer
+        ): HttpClient = HttpClient(Android) {
+            expectSuccess = true
+
+            HttpResponseValidator {
+                handleResponseException {
+                    val clientException = it as? ClientRequestException
+                        ?: return@handleResponseException
+                    val responseBody = clientException.response.receive<String>()
+
+                    throw ConversionException.findExceptionInErrorBodyMessage(responseBody)
+                        ?: clientException
                 }
             }
 
-            level = LogLevel.ALL
+            install(Logging) {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        Log.d("Ktor", "log: $message")
+                    }
+                }
+
+                level = LogLevel.ALL
+            }
+
+            install(JsonFeature) {
+                serializer = jsonSerializer
+            }
+
+            install(DefaultRequest) {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+            }
         }
 
-        install(JsonFeature) {
-            serializer = jsonSerializer
-        }
+        @Provides
+        @Singleton
+        fun provideJsonSerializer(): JsonSerializer = object : JsonSerializer {
+            private val gson = Gson()
 
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }
-    }
+            override fun read(type: TypeInfo, body: Input): Any {
+                return gson.fromJson(body.readText(), type.type.java)
+            }
 
-    @Provides
-    @Singleton
-    fun provideJsonSerializer(): JsonSerializer = object : JsonSerializer {
-
-        private val gson = Gson()
-
-        override fun read(type: TypeInfo, body: Input): Any {
-            return gson.fromJson(body.readText(), type.type.java)
-        }
-
-        override fun write(data: Any, contentType: ContentType): OutgoingContent {
-            return TextContent(gson.toJson(data), contentType)
+            override fun write(data: Any, contentType: ContentType): OutgoingContent {
+                return TextContent(gson.toJson(data), contentType)
+            }
         }
     }
 }
