@@ -2,10 +2,14 @@ package com.example.exchangerate.data.remote
 
 import com.example.exchangerate.BuildConfig
 import com.example.exchangerate.data.dto.convertresult.ConversionResultDto
+import com.example.exchangerate.domain.exception.ConversionException
 import com.google.gson.Gson
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import okhttp3.*
+import java.io.IOException
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class ExchangeRateApiImpl @Inject constructor(
     private val client: OkHttpClient,
@@ -22,12 +26,30 @@ class ExchangeRateApiImpl @Inject constructor(
             .url("${BASE_URL}/v6/${API_KEY}/pair/${from}/${to}/${amount}")
             .build()
 
-        val response = client.newCall(request).execute()
+        return suspendCoroutine { continuation ->
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    continuation.resumeWithException(e)
+                }
 
-        return gson.fromJson(
-            response.body?.string(),
-            ConversionResultDto::class.java
-        )
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.isSuccessful) {
+                        val conversionResultDto = gson.fromJson(
+                            response.body?.string(),
+                            ConversionResultDto::class.java
+                        )
+
+                        continuation.resume(conversionResultDto)
+                    } else {
+                        val exception = response.body?.let {
+                            ConversionException.findExceptionInErrorBodyMessage(it.string())
+                        } ?: ConversionException.GeneralHttpException
+
+                        continuation.resumeWithException(exception)
+                    }
+                }
+            })
+        }
     }
 
     companion object {
